@@ -10,7 +10,7 @@ from fastapi.requests import Request
 @app.post('/user/')
 async def create_user(user: schemas.UserBase, request: Request):
     try:
-        db_user = await crud.create_user(user=user, db=app.state.db)
+        db_user = await crud.create_user(user=user, db=request.app.state.db)
         if db_user:
             return HTTPException(status_code=status.HTTP_201_CREATED,
                                  detail=f'User was created by {request.app.active_connection}')
@@ -20,9 +20,9 @@ async def create_user(user: schemas.UserBase, request: Request):
 
 
 @app.get('/api/users/list')
-async def get_users(request: Request,limit: int = 5, offset: int = 0):
+async def get_users(request: Request, limit: int = 5, offset: int = 0):
     db_users = await crud.get_users(limit=limit, offset=offset, db=app.state.db)
-    all_users = await crud.get_user_count(db=app.state.db)
+    all_users = await crud.get_user_count(db=request.app.state.db)
     return {
         'total': len(all_users),
         'per_page': limit,
@@ -35,15 +35,15 @@ async def get_users(request: Request,limit: int = 5, offset: int = 0):
 
 
 @app.delete('/api/user/{id}')
-async def delete_user(id: int):
-    db_user = await crud.delete_user(id=id, db=app.state.db)
+async def delete_user(id: int, request: Request):
+    db_user = await crud.delete_user(id=id, db=request.app.state.db)
 
     if db_user:
         return HTTPException(status_code=status.HTTP_200_OK,
                              detail='User deleted')
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail='User not found')
+                            detail=f'User not found')
 
 
 @app.websocket('/event')
