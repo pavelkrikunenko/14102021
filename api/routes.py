@@ -1,25 +1,26 @@
 from . import app, schemas, crud
 
-from fastapi import status, HTTPException, WebSocket
+from fastapi import status, HTTPException, WebSocket, Depends
 from datetime import datetime
 from sqlite3 import IntegrityError
 import asyncio
 from fastapi.requests import Request
 
+
 @app.post('/user/')
-async def create_user(user: schemas.UserBase, request: Request ):
+async def create_user(user: schemas.UserBase, request: Request):
     try:
         db_user = await crud.create_user(user=user, db=app.state.db)
         if db_user:
             return HTTPException(status_code=status.HTTP_201_CREATED,
-                                 detail=f'User was created by {request.client.host}')
+                                 detail=f'User was created by {request.app.active_connection}')
     except IntegrityError as e:
         return HTTPException(status_code=status.HTTP_208_ALREADY_REPORTED,
                              detail='This name already registered')
 
 
 @app.get('/api/users/list')
-async def get_users(limit: int = 5, offset: int = 0):
+async def get_users(request: Request,limit: int = 5, offset: int = 0):
     db_users = await crud.get_users(limit=limit, offset=offset, db=app.state.db)
     all_users = await crud.get_user_count(db=app.state.db)
     return {
