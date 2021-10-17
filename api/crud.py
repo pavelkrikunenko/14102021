@@ -3,7 +3,7 @@ from . import schemas
 import random
 import string
 from datetime import datetime
-from .database import database
+
 from .models import users
 
 

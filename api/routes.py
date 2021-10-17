@@ -39,7 +39,7 @@ async def delete_user(id: int, request: Request):
     db_user = await crud.delete_user(id=id, db=request.app.state.db)
 
     if db_user:
-        return HTTPException(status_code=status.HTTP_200_OK,
+        raise HTTPException(status_code=status.HTTP_200_OK,
                              detail='User deleted')
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
