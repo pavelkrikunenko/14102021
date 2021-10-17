@@ -4,15 +4,15 @@ from fastapi import status, HTTPException, WebSocket
 from datetime import datetime
 from sqlite3 import IntegrityError
 import asyncio
-
+from fastapi.requests import Request
 
 @app.post('/user/')
-async def create_user(user: schemas.UserBase):
+async def create_user(user: schemas.UserBase, request: Request ):
     try:
-        db_user = await crud.create_user(user=user)
+        db_user = await crud.create_user(user=user, db=app.state.db)
         if db_user:
             return HTTPException(status_code=status.HTTP_201_CREATED,
-                                 detail='User was created')
+                                 detail=f'User was created by {request.client.host}')
     except IntegrityError as e:
         return HTTPException(status_code=status.HTTP_208_ALREADY_REPORTED,
                              detail='This name already registered')
@@ -20,21 +20,22 @@ async def create_user(user: schemas.UserBase):
 
 @app.get('/api/users/list')
 async def get_users(limit: int = 5, offset: int = 0):
-    db_users = await crud.get_users(limit=limit, offset=offset)
-    all_users = await crud.get_user_count()
+    db_users = await crud.get_users(limit=limit, offset=offset, db=app.state.db)
+    all_users = await crud.get_user_count(db=app.state.db)
     return {
         'total': len(all_users),
         'per_page': limit,
         'page': 1,
         'limit': limit,
         'offset': offset,
-        'items': db_users
+        'items': db_users,
+
     }
 
 
 @app.delete('/api/user/{id}')
 async def delete_user(id: int):
-    db_user = await crud.delete_user(id=id)
+    db_user = await crud.delete_user(id=id, db=app.state.db)
 
     if db_user:
         return HTTPException(status_code=status.HTTP_200_OK,

@@ -7,27 +7,27 @@ from .database import database
 from .models import users
 
 
-async def get_users(limit: int = 5, offset: int = 0):
+async def get_users(db, limit: int = 5, offset: int = 0):
     query = users.select().limit(limit).offset(offset)
-    return await database.fetch_all(query)
+    return await db.fetch_all(query)
 
 
-async def get_user_count():
-    return await database.fetch_all(users.select())
+async def get_user_count(db):
+    return await db.fetch_all(users.select())
 
 
-async def delete_user(id: int):
+async def delete_user(id: int, db):
     query = f"""DELETE FROM users WHERE id={id}"""
-    return await database.execute(query)
+    return await db.execute(query)
 
 
-async def create_user(user: schemas.UserBase):
+async def create_user(user: schemas.UserBase, db):
     ctime = int(datetime.timestamp(datetime.utcnow()))
     query = users.insert()
     values = {'name': user.name,
               'role': user.role,
               'ctime': ctime}
-    return await database.execute(query, values=values)
+    return await db.execute(query, values=values)
 
 
 async def generate_event():
