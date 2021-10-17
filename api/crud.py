@@ -1,37 +1,33 @@
-from sqlalchemy.orm import Session
-from . import models, schemas
+
+from . import schemas
 import random
 import string
 from datetime import datetime
+from .database import database
+from .models import users
 
 
-async def get_users(db: Session, limit: int = 5, offset: int = 0):
-    await db.query(models.User).limit(limit=limit).offset(offset).all()
+async def get_users(limit: int = 5, offset: int = 0):
+    query = users.select().limit(limit).offset(offset)
+    return await database.fetch_all(query)
 
 
-async def get_user_count(db: Session):
-    await db.query(models.User).all()
+async def get_user_count():
+    return await database.fetch_all(users.select())
 
 
-async def delete_user(id: int, db: Session):
-    db_user = await db.query(models.User).filter(models.User.id == id).first()
-    if db_user:
-        db.delete(db_user)
-        db.commit()
-        return db_user
-    return False
+async def delete_user(id: int):
+    query = f"""DELETE FROM users WHERE id={id}"""
+    return await database.execute(query)
 
 
-async def create_user(db: Session, user: schemas.UserBase):
-    db_user = models.User(
-        name=user.name,
-        role=user.role,
-        ctime=int(datetime.timestamp(datetime.utcnow()))
-    )
-    await db.add(db_user)
-    await db.commit()
-    await db.refresh(db_user)
-    return db_user
+async def create_user(user: schemas.UserBase):
+    ctime = int(datetime.timestamp(datetime.utcnow()))
+    query = users.insert()
+    values = {'name': user.name,
+              'role': user.role,
+              'ctime': ctime}
+    return await database.execute(query, values=values)
 
 
 async def generate_event():

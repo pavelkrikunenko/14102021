@@ -1,11 +1,18 @@
 from fastapi import FastAPI
-from .database import engine, get_db
+from .database import engine, database
 from . import models, database
 
-
-models.Base.metadata.create_all(bind=engine)
-
 app = FastAPI()
-app.state.database = get_db
+
+
+@app.on_event('startup')
+async def startup():
+    await database.connect()
+
+
+@app.on_event('shutdown')
+def shutdown():
+    await database.disconnect()
+
 
 from . import routes

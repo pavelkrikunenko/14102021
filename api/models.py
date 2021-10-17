@@ -1,11 +1,17 @@
-from sqlalchemy import String, Column, Integer
-from .database import Base
+from sqlalchemy import String, Column, Integer, Table
+from .database import metadata
 from datetime import datetime
 
 
-class User(Base):
-    __tablename__ = 'users'
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(250), unique=True, nullable=False)
-    role = Column(String(250), nullable=False)
-    ctime = Column(Integer, default=int(datetime.timestamp(datetime.utcnow())))
+users = Table(
+    'users',
+    metadata,
+    Column('id', Integer,
+           primary_key=True,
+           index=True),
+    Column('name',String(250),
+           unique=True, nullable=False),
+    Column('role',String(250), nullable=False),
+    Column('ctime', Integer,
+           default=int(datetime.timestamp(datetime.utcnow())))
+)
