@@ -1,13 +1,20 @@
 from __future__ import annotations
 
-from fastapi import Query
 from pydantic import BaseModel
 
 from typing import TypeVar, Generic
+from fastapi_pagination.bases import Sequence, AbstractParams, AbstractPage
 
-from fastapi_pagination.default import Page as BasePage, Params as BaseParams
+from dataclasses import dataclass
 
 T = TypeVar("T")
+
+
+@dataclass
+class Raw:
+    limit: int
+    offset: int
+    per_page: int
 
 
 class UserBase(BaseModel):
@@ -23,9 +30,39 @@ class User(UserBase):
         orm_mode = True
 
 
-class Params(BaseParams):
-    size: int = Query(5, ge=1, le=1_000, description="Page size")
+class Params(BaseModel, AbstractParams):
+    limit: int = 5
+    offset: int = 0
+
+    def to_raw_params(self) -> Raw:
+        return Raw(
+            limit=self.limit,
+            offset=self.offset,
+            per_page=int(self.offset / self.limit),
+
+        )
 
 
-class Page(BasePage[T], Generic[T]):
+class Page(AbstractPage[T], Generic[T]):
+    total: int
+    per_page: int
+
+    limit: int
+    offset: int
+    items: Sequence[T]
+
     __params_type__ = Params
+
+    @classmethod
+    def create(cls,
+               items: Sequence[T],
+               total: int,
+               params: Params
+               ) -> Page[T]:
+        return cls(items=items,
+                   total=total,
+                   limit=params.limit,
+                   offset=params.offset,
+                   per_page=int(params.offset / params.limit),
+
+                   )

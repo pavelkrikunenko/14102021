@@ -1,4 +1,3 @@
-
 from . import schemas
 import random
 import string
@@ -10,10 +9,6 @@ from .models import users
 async def get_users(db):
     query = users.select()
     return await db.fetch_all(query)
-
-
-async def get_user_count(db):
-    return await db.fetch_all(users.select())
 
 
 async def delete_user(id: int, db):
