@@ -1,5 +1,13 @@
+from __future__ import annotations
+
+from fastapi import Query
 from pydantic import BaseModel
-from typing import List
+
+from typing import TypeVar, Generic
+
+from fastapi_pagination.default import Page as BasePage, Params as BaseParams
+
+T = TypeVar("T")
 
 
 class UserBase(BaseModel):
@@ -15,17 +23,9 @@ class User(UserBase):
         orm_mode = True
 
 
-class PageBase(BaseModel):
-    limit: int
-    offset: int
+class Params(BaseParams):
+    size: int = Query(5, ge=1, le=1_000, description="Page size")
 
 
-class Page(PageBase):
-    total: int
-    per_page: int
-    page: int
-    items: List[User] = None
-
-
-class DeleteUser(BaseModel):
-    id: int
+class Page(BasePage[T], Generic[T]):
+    __params_type__ = Params

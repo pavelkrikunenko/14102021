@@ -1,10 +1,12 @@
 from . import app, schemas, crud
-
-from fastapi import status, HTTPException, WebSocket, Depends
+from fastapi import status, HTTPException, WebSocket
 from datetime import datetime
 from sqlite3 import IntegrityError
 import asyncio
 from fastapi.requests import Request
+from fastapi_pagination import add_pagination
+from fastapi_pagination.ext.databases import paginate
+from .models import users
 
 
 @app.post('/user/')
@@ -19,19 +21,12 @@ async def create_user(user: schemas.UserBase, request: Request):
                              detail='This name already registered')
 
 
-@app.get('/api/users/list')
-async def get_users(request: Request, limit: int = 5, offset: int = 0):
-    db_users = await crud.get_users(limit=limit, offset=offset, db=app.state.db)
-    all_users = await crud.get_user_count(db=request.app.state.db)
-    return {
-        'total': len(all_users),
-        'per_page': limit,
-        'page': 1,
-        'limit': limit,
-        'offset': offset,
-        'items': db_users,
+@app.get('/api/users/list', response_model=schemas.Page[schemas.User])
+async def get_users(request: Request):
+    return await paginate(request.app.state.db, users.select())
 
-    }
+
+add_pagination(app)
 
 
 @app.delete('/api/user/{id}')
@@ -40,7 +35,7 @@ async def delete_user(id: int, request: Request):
 
     if db_user:
         raise HTTPException(status_code=status.HTTP_200_OK,
-                             detail='User deleted')
+                            detail='User deleted')
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f'User not found')

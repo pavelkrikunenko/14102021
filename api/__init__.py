@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from .database import engine, database
 from . import models, database
-
+from fastapi_pagination import add_pagination
 app = FastAPI()
 app.state.db = database
 

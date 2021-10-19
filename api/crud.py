@@ -7,8 +7,8 @@ from datetime import datetime
 from .models import users
 
 
-async def get_users(db, limit: int = 5, offset: int = 0):
-    query = users.select().limit(limit).offset(offset)
+async def get_users(db):
+    query = users.select()
     return await db.fetch_all(query)
 
 
