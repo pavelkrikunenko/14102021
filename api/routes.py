@@ -27,7 +27,7 @@ async def get_users(request: Request, limit: int = 5, offset: int = 0):
     page = int((offset / limit) + 1)
     return {
         'total': total,
-        'per_page': limit,
+        'per_page': len(db_users),
         'page': page,
         'limit': limit,
         'offset': offset,
