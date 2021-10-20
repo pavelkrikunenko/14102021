@@ -1,15 +1,11 @@
 from . import app, schemas, crud
-from fastapi import status, HTTPException, WebSocket, Depends
+from fastapi import status, HTTPException, WebSocket
 from datetime import datetime
 from sqlite3 import IntegrityError
 import asyncio
 from fastapi.requests import Request
-from fastapi_pagination import add_pagination
-from fastapi_pagination.ext.databases import paginate
 from .models import users
-from fastapi_pagination.bases import AbstractParams
-from fastapi_pagination.links import LimitOffsetPage
-from math import floor
+
 
 @app.post('/user/')
 async def create_user(user: schemas.UserBase, request: Request):
@@ -37,9 +33,6 @@ async def get_users(request: Request, limit: int = 5, offset: int = 0):
         'offset': offset,
         'items': db_users
     }
-
-
-add_pagination(app)
 
 
 @app.delete('/api/user/{id}')
