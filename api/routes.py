@@ -19,7 +19,7 @@ async def create_user(user: schemas.UserBase, request: Request):
                              detail='This name already registered')
 
 
-@app.get('/api/users/list')
+@app.get('/api/users/list', response_model=schemas.Page)
 async def get_users(request: Request, limit: int = 5, offset: int = 0):
     query_with_limit = users.select().limit(limit).offset(offset)
     db_users = await request.app.state.db.fetch_all(query=query_with_limit)
