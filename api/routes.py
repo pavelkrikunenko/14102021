@@ -9,7 +9,7 @@ from fastapi_pagination.ext.databases import paginate
 from .models import users
 from fastapi_pagination.bases import AbstractParams
 from fastapi_pagination.links import LimitOffsetPage
-
+from math import floor
 
 @app.post('/user/')
 async def create_user(user: schemas.UserBase, request: Request):
@@ -23,9 +23,20 @@ async def create_user(user: schemas.UserBase, request: Request):
                              detail='This name already registered')
 
 
-@app.get('/api/users/list', response_model=LimitOffsetPage[schemas.User])
-async def get_users(request: Request, params: AbstractParams = Depends(schemas.Params)):
-    return await paginate(request.app.state.db, users.select(), params=params)
+@app.get('/api/users/list')
+async def get_users(request: Request, limit: int = 5, offset: int = 0):
+    query_with_limit = users.select().limit(limit).offset(offset)
+    db_users = await request.app.state.db.fetch_all(query=query_with_limit)
+    total = len(await crud.get_users(request.app.state.db))
+    page = int((offset / limit) + 1)
+    return {
+        'total': total,
+        'per_page': limit,
+        'page': page,
+        'limit': limit,
+        'offset': offset,
+        'items': db_users
+    }
 
 
 add_pagination(app)
