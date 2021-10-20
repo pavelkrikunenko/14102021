@@ -25,6 +25,9 @@ async def get_users(request: Request, limit: int = 5, offset: int = 0):
     db_users = await request.app.state.db.fetch_all(query=query_with_limit)
     total = len(await crud.get_users(request.app.state.db))
     page = int((offset / limit) + 1)
+    if len(db_users) == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail='Page not found.')
     return {
         'total': total,
         'per_page': len(db_users),
