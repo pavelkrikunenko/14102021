@@ -8,7 +8,7 @@ from fastapi_pagination import add_pagination
 from fastapi_pagination.ext.databases import paginate
 from .models import users
 from fastapi_pagination.bases import AbstractParams
-
+from fastapi_pagination.links import LimitOffsetPage
 
 
 @app.post('/user/')
@@ -23,7 +23,7 @@ async def create_user(user: schemas.UserBase, request: Request):
                              detail='This name already registered')
 
 
-@app.get('/api/users/list', response_model=schemas.Page[schemas.User])
+@app.get('/api/users/list', response_model=LimitOffsetPage[schemas.User])
 async def get_users(request: Request, params: AbstractParams = Depends(schemas.Params)):
     return await paginate(request.app.state.db, users.select(), params=params)
 
